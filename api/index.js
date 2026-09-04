@@ -51,6 +51,8 @@ app.get("/api/health", (req, res) => {
     senderEmail: mail.SENDER_EMAIL,
     senderName: mail.SENDER_NAME,
     usingTestSender: mail.SENDER_EMAIL.endsWith("@resend.dev"),
+    replyTo: mail.REPLY_TO || null,
+    companyName: mail.COMPANY_NAME,
     deadlineMinutes: DEADLINE_MINUTES,
     time: new Date().toISOString(),
   });
@@ -87,9 +89,7 @@ app.get("/api/emails/preview/:type", (req, res) => {
     emissionTime: q.emissionTime || fmtTime(new Date(Date.now() + 30 * 60000)),
     estimatedTime: q.estimatedTime || "2-3 horas",
   };
-  let html = get();
-  for (const [k, v] of Object.entries(vars)) html = html.split(`{{${k}}}`).join(String(v));
-  res.type("html").send(html);
+  res.type("html").send(mail.fill(get(), vars));
 });
 
 // ---------- 1. Cadastro ----------
