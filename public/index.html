@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Gestor Ambev Brasil</title>
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍺</text></svg>">
+<title>Ambev Atacados · Gestor</title>
+<link rel="icon" href="/brand/logo-icon.png">
 <style>
   :root{
     --bg:#f3f5f7; --card:#ffffff; --ink:#1a1d21; --muted:#6b7280; --line:#e5e7eb;
@@ -132,10 +132,10 @@
 <div class="topbar">
   <div class="topbar-in">
     <div class="logo">
-      <div class="mark">🍺</div>
+      <img src="/brand/logo-icon.png" alt="" style="width:42px;height:42px;border-radius:12px">
       <div>
-        <div class="name">ambev</div>
-        <div class="sub">Gestor de Clientes</div>
+        <div class="name">AMBEV <span style="color:#F5B700">ATACADOS</span></div>
+        <div class="sub">Gestor de Pedidos</div>
       </div>
     </div>
     <div class="cfg" id="cfg"><span class="dot"></span> Verificando configuração…</div>
@@ -169,21 +169,45 @@
         </form>
       </div>
 
+      <div class="card" style="border:2px dashed #cbd5e1">
+        <h2>📋 Colar pedido do catálogo <span class="tag">preenche tudo sozinho</span></h2>
+        <textarea id="pasteBox" rows="5" placeholder="Cole aqui a mensagem do pedido (🧾 PEDIDO #... — AMBEV ATACADOS ...)" style="width:100%;border:1px solid var(--line);border-radius:10px;padding:10px 12px;font:inherit;font-size:12px;resize:vertical"></textarea>
+        <button class="btn primary" type="button" id="btnParse" style="margin-top:10px">Ler pedido e preencher</button>
+        <div class="hint" id="parseHint">Reconhece número, data, titular, entrega, itens com preço, subtotal, frete, total, pagamento e observação.</div>
+      </div>
+
       <div class="card">
         <h2>🛒 Novo pedido <span class="tag">envia emails 2 e 3</span></h2>
         <form id="fOrder">
           <label>Cliente *</label>
           <select name="clientId" id="selClient" required><option value="">Cadastre um cliente primeiro</option></select>
+          <div id="newClientBox" style="display:none;background:#fffbeb;border:1px solid #fde68a;border-radius:10px;padding:10px 12px;margin-top:8px">
+            <div style="font-size:13px;color:#78350f"><b>Cliente novo:</b> <span id="newClientName"></span> — informe o email para cadastrar junto com o pedido.</div>
+            <input name="newClientEmail" type="email" placeholder="email do cliente" style="margin-top:8px">
+            <input name="newClientPhone" type="hidden">
+          </div>
+          <label>Número do pedido <span style="font-weight:400;color:var(--muted)">(deixe em branco para gerar automático)</span></label>
+          <input name="orderNumber" id="orderNumber" placeholder="Ex.: PED-000123 ou 4587">
+          <label>Itens do pedido <span style="font-weight:400;color:var(--muted)">(um por linha, vai no email)</span></label>
+          <textarea name="items" rows="3" placeholder="10 cx cerveja lata 350ml&#10;5 cx refrigerante 2L" style="width:100%;border:1px solid var(--line);border-radius:10px;padding:10px 12px;font:inherit;resize:vertical"></textarea>
           <div class="row">
             <div><label>Subtotal (R$) *</label><input name="subtotal" type="number" step="0.01" min="0" required placeholder="1500,00"></div>
             <div><label>Frete (R$)</label><input name="shipping" type="number" step="0.01" min="0" value="0" placeholder="0,00"></div>
           </div>
           <label>Forma de pagamento</label>
           <select name="paymentMethod">
-            <option>PIX</option><option>Boleto Bancário</option><option>Transferência</option><option>Cartão de Crédito</option>
+            <option>PIX</option><option>Boleto Bancário</option><option>Transferência</option><option>Cartão de Crédito</option><option>Dinheiro</option>
           </select>
+          <label>Entrega <span style="font-weight:400;color:var(--muted)">(endereço, opcional — vai no email)</span></label>
+          <textarea name="delivery" rows="2" placeholder="Rua, nº, bairro — Cidade/UF, CEP, referência" style="width:100%;border:1px solid var(--line);border-radius:10px;padding:10px 12px;font:inherit;resize:vertical"></textarea>
+          <div class="row">
+            <div><label>Recebedor</label><input name="receiver" placeholder="o próprio titular"></div>
+            <div><label>Data do pedido</label><input name="orderDate" placeholder="dd/mm/aaaa (opcional)"></div>
+          </div>
+          <label>Observação</label>
+          <input name="notes" placeholder="Ex.: ligar quando estiver próximo">
           <button class="btn primary" type="submit">Criar pedido e cobrar</button>
-          <div class="hint">Dispara <b>✅ Pedido Recebido</b> e <b>⚠️ Aguardando Pagamento</b> (prazo de <span id="deadlineTxt">20</span> minutos).</div>
+          <div class="hint">Dispara <b>✅ Pedido Recebido</b> e <b>⚠️ Aguardando Pagamento</b> (prazo de <span id="deadlineTxt">20</span> minutos). Os valores, itens e número do pedido vão exatamente como você lançou aqui.</div>
         </form>
       </div>
 
@@ -263,7 +287,7 @@ const fmtDT = (iso)=> new Date(iso).toLocaleString("pt-BR");
 const fmtD  = (iso)=> new Date(iso).toLocaleDateString("pt-BR");
 const esc = (s)=> String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const initials = (n)=> n.split(" ").filter(Boolean).slice(0,2).map(p=>p[0].toUpperCase()).join("");
-function nextId(prefix, list){ return prefix + String(list.length+1).padStart(6,"0"); }
+function nextId(prefix, list){ let n=list.length+1, id; do{ id=prefix+String(n++).padStart(6,"0"); }while(list.some(x=>x.id===id)); return id; }
 
 // ===================== API =====================
 async function api(path, body){
@@ -311,8 +335,12 @@ async function checkHealth(){
       cfg.innerHTML = '<span class="dot ok"></span> Resend ativo · remetente de teste';
       banner.className="banner warn";
       banner.innerHTML = "<b>Modo teste do Resend:</b> o remetente é <code>"+esc(health.senderEmail)+"</code>, então o Resend só entrega para o email da <b>sua própria conta Resend</b>. Para enviar a qualquer cliente, verifique um domínio em resend.com/domains e configure <code>SENDER_EMAIL</code>.";
-    } else {
+    } else if(!health.whatsappConfigured){
       cfg.innerHTML = '<span class="dot ok"></span> Resend ativo · '+esc(health.senderEmail);
+      banner.className="banner warn";
+      banner.innerHTML = "<b>WhatsApp não configurado:</b> os botões dos emails vão abrir um e-mail em vez do WhatsApp. Configure <code>WHATSAPP_NUMBER</code> na Vercel (ex.: 554598464568).";
+    } else {
+      cfg.innerHTML = '<span class="dot ok"></span> Resend ativo · '+esc(health.senderEmail)+' · WhatsApp '+esc(health.whatsappDisplay);
       banner.className="banner";
     }
   }catch(e){
@@ -335,24 +363,87 @@ $("#fClient").addEventListener("submit", async (ev)=>{
 
 $("#fOrder").addEventListener("submit", async (ev)=>{
   ev.preventDefault();
-  const f = ev.target, btn = f.querySelector("button");
-  const client = state.clients.find(c=>c.id===f.clientId.value);
+  const f = ev.target, btn = f.querySelector("button[type=submit]");
+  let client = state.clients.find(c=>c.id===f.clientId.value);
+  if(!client && f.clientId.value==="__new__"){
+    const email = f.newClientEmail.value.trim().toLowerCase(), name = $("#newClientName").textContent.trim();
+    if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){ toast("Informe o email do cliente novo.","err"); return; }
+    client = state.clients.find(c=>c.email===email);
+    if(!client){ client = { id: nextId("CLI-", state.clients), name, email, phone:f.newClientPhone.value||"", company:"", createdAt:new Date().toISOString() }; state.clients.push(client); }
+  }
   if(!client){ toast("Selecione um cliente.","err"); return; }
   const subtotal = Number(f.subtotal.value||0), shipping = Number(f.shipping.value||0), total = subtotal+shipping;
   const now = new Date();
-  const order = { id: nextId("PED-", state.orders), clientId:client.id, subtotal, shipping, total, paymentMethod:f.paymentMethod.value,
+  let id = f.orderNumber.value.trim().toUpperCase();
+  if(!id) id = nextId("PED-", state.orders);
+  if(state.orders.some(o=>o.id===id)){ toast("Já existe um pedido com o número "+id+".","err"); return; }
+  const items = f.items.value.trim();
+  const order = { id, clientId:client.id, subtotal, shipping, total, paymentMethod:f.paymentMethod.value, items,
+    delivery:f.delivery.value.trim(), receiver:f.receiver.value.trim(), notes:f.notes.value.trim(), orderDate:f.orderDate.value.trim(),
     status:"pend", createdAt:now.toISOString(), deadline:new Date(now.getTime()+DEADLINE_MIN*60000).toISOString(), sent:{} };
   busy(btn,true);
   state.orders.unshift(order); save();
   try{
-    await sendEmail("order", {email:client.email, name:client.name, orderNumber:order.id, orderDate:fmtD(order.createdAt), subtotal:money(subtotal), shippingCost:money(shipping), total:money(total)}, order.id);
+    await sendEmail("order", orderPayload(order, client), order.id);
     order.sent.order = true; save();
   }catch{}
   try{
     await sendEmail("payment", {email:client.email, name:client.name, orderNumber:order.id, totalAmount:money(total), dueDate:fmtDT(order.deadline), paymentMethod:order.paymentMethod}, order.id);
     order.sent.payment = true; save();
   }catch{}
-  busy(btn,false); f.reset(); f.shipping.value=0;
+  busy(btn,false); f.reset(); f.shipping.value=0; $("#newClientBox").style.display="none"; $("#pasteBox").value=""; render();
+});
+
+function orderPayload(o, c){
+  return {email:c.email, name:c.name, orderNumber:o.id, orderDate:o.orderDate||fmtD(o.createdAt), subtotal:money(o.subtotal), shippingCost:money(o.shipping), total:money(o.total),
+    items:o.items||"", delivery:o.delivery||"", receiver:o.receiver||"", notes:o.notes||""};
+}
+
+// ===================== Leitor do pedido colado (catálogo) =====================
+function parseOrderText(t){
+  t = t.replace(/\*/g,"").replace(/\r/g,"");
+  const g = (re)=>{ const m=t.match(re); return m? m[1].trim() : ""; };
+  const num = (s)=> Number(String(s||"0").replace(/\./g,"").replace(",",".")) || 0;
+  const r = {};
+  r.orderNumber = g(/PEDIDO\s*#\s*([\w-]+)/i);
+  r.orderDate = g(/📅\s*(\d{2}\/\d{2}\/\d{4})/);
+  r.cadastroId = g(/ID de cadastro:\s*#?\s*(\d+)/i);
+  r.name = g(/Titular:\s*(.+)/i);
+  const ent = t.match(/ENTREGA\s*\n([\s\S]*?)(?=\n\s*(?:—\s*)?ESPELHO|\n\s*▪)/i);
+  if(ent){
+    const lines = ent[1].split("\n").map(l=>l.replace(/^[📍🧭📥\s]+/,"").trim()).filter(Boolean);
+    r.receiver = (lines.find(l=>/^Recebedor:/i.test(l))||"").replace(/^Recebedor:\s*/i,"");
+    r.delivery = lines.filter(l=>!/^Recebedor:/i.test(l)).join("\n");
+  }
+  r.items = [...t.matchAll(/▪\s*(.+?)\s*—\s*(R\$\s*[\d.,]+)/g)].map(m=>m[1].replace(/\s*🔥\S*/g," (promo)").replace(/\s+/g," ").trim()+" — "+m[2].replace(/\s+/g," ")).join("\n");
+  r.subtotal = num(g(/Subtotal:\s*R\$\s*([\d.,]+)/i));
+  const fr = g(/Frete:\s*(GR[ÁA]TIS|R\$\s*[\d.,]+)/i); r.shipping = /gr/i.test(fr) ? 0 : num(fr.replace(/R\$\s*/,""));
+  r.total = num(g(/TOTAL:\s*R\$\s*([\d.,]+)/i));
+  const pay = g(/Pagamento:\s*(.+)/i).toLowerCase();
+  r.paymentMethod = /pix/.test(pay)?"PIX":/boleto/.test(pay)?"Boleto Bancário":/cart/.test(pay)?"Cartão de Crédito":/transf/.test(pay)?"Transferência":/dinheiro|esp[eé]cie/.test(pay)?"Dinheiro":"PIX";
+  r.notes = g(/Obs\.?:\s*(.+)/i);
+  if(!r.subtotal && r.total) r.subtotal = r.total - r.shipping;
+  return r;
+}
+$("#btnParse").addEventListener("click", ()=>{
+  const txt = $("#pasteBox").value; if(!txt.trim()){ toast("Cole o texto do pedido primeiro.","err"); return; }
+  const r = parseOrderText(txt), f = $("#fOrder");
+  if(!r.orderNumber && !r.items && !r.total){ toast("Não reconheci o formato. Confira se colou a mensagem inteira.","err"); return; }
+  f.orderNumber.value = r.orderNumber; f.items.value = r.items; f.subtotal.value = r.subtotal? r.subtotal.toFixed(2):""; f.shipping.value = r.shipping.toFixed(2);
+  f.paymentMethod.value = r.paymentMethod; f.delivery.value = r.delivery||""; f.receiver.value = r.receiver||""; f.notes.value = r.notes||""; f.orderDate.value = r.orderDate||"";
+  // cliente: procura pelo nome; se não existir, oferece cadastro junto
+  const found = state.clients.find(c=>c.name.trim().toLowerCase()===r.name.trim().toLowerCase());
+  const sel = $("#selClient");
+  if(found){ sel.value = found.id; $("#newClientBox").style.display="none"; }
+  else if(r.name){
+    if(!sel.querySelector('option[value="__new__"]')){ const o=document.createElement("option"); o.value="__new__"; sel.appendChild(o); }
+    sel.querySelector('option[value="__new__"]').textContent = "➕ Novo: "+r.name; sel.value="__new__";
+    $("#newClientName").textContent = r.name; $("#newClientBox").style.display="block"; f.newClientEmail.focus();
+  }
+  const n = r.items? r.items.split("\n").length : 0;
+  $("#parseHint").innerHTML = `✅ Lido: pedido <b>${esc(r.orderNumber||"?")}</b> · ${esc(r.name||"sem titular")} · ${n} itens · total R$ ${money(r.total)}${found?"":r.name?" · <b>cliente novo — informe o email</b>":""}. Confira e clique em <b>Criar pedido e cobrar</b>.`;
+  toast("Pedido lido: "+n+" itens, total R$ "+money(r.total),"ok");
+  f.scrollIntoView({behavior:"smooth",block:"start"});
 });
 
 async function confirmPayment(id, btn){
@@ -385,7 +476,7 @@ async function resendCharge(id, btn){
 async function resendOrder(id, btn){
   const o = state.orders.find(x=>x.id===id), c = state.clients.find(x=>x.id===o.clientId);
   busy(btn,true);
-  try{ await sendEmail("order", {email:c.email, name:c.name, orderNumber:o.id, orderDate:fmtD(o.createdAt), subtotal:money(o.subtotal), shippingCost:money(o.shipping), total:money(o.total)}, o.id); o.sent.order=true; save(); }catch{}
+  try{ await sendEmail("order", orderPayload(o, c), o.id); o.sent.order=true; save(); }catch{}
   busy(btn,false);
 }
 async function resendRegistration(id, btn){
@@ -412,6 +503,7 @@ function render(){
   // select
   const sel = $("#selClient"), cur = sel.value;
   sel.innerHTML = state.clients.length ? '<option value="">Selecione…</option>' + state.clients.map(c=>`<option value="${c.id}">${esc(c.name)} — ${esc(c.email)}</option>`).join("") : '<option value="">Cadastre um cliente primeiro</option>';
+  if(cur==="__new__" && $("#newClientBox").style.display!=="none"){ const o=document.createElement("option"); o.value="__new__"; o.textContent="➕ Novo: "+$("#newClientName").textContent; sel.appendChild(o); }
   if(cur) sel.value = cur;
 
   // clients
@@ -459,6 +551,7 @@ function renderOrder(o){
       <div>
         <div class="order-id">${esc(o.id)} ${timer}</div>
         <div class="order-meta">${esc(c.name)} · ${esc(c.email)} · ${esc(o.paymentMethod)} · ${fmtDT(o.createdAt)}</div>
+        ${o.items?`<details style="margin-top:4px"><summary style="font-size:12px;color:var(--brand);cursor:pointer">${o.items.split("\n").length} itens${o.delivery?" · entrega: "+esc(o.delivery.split("\n")[0]):""}${o.notes?" · obs: "+esc(o.notes):""}</summary><div class="order-meta" style="white-space:pre-line;color:#374151">${esc(o.items)}${o.delivery?"\n\n📍 "+esc(o.delivery):""}${o.receiver?"\n📥 "+esc(o.receiver):""}${o.notes?"\n📝 "+esc(o.notes):""}</div></details>`:""}
       </div>
       <div class="order-total">R$ ${money(o.total)}<div class="hint" style="margin:0">sub ${money(o.subtotal)} + frete ${money(o.shipping)}</div></div>
     </div>
@@ -503,7 +596,7 @@ $("#mSend").addEventListener("click", async ()=>{
   const btn = $("#mSend"); busy(btn,true);
   const now = new Date();
   const payload = { registration:{email,name,referenceCode:"CLI-TESTE"},
-    order:{email,name,orderNumber:"PED-TESTE",orderDate:fmtD(now),subtotal:"1.500,00",shippingCost:"50,00",total:"1.550,00"},
+    order:{email,name,orderNumber:"PED-TESTE",orderDate:fmtD(now),subtotal:"1.500,00",shippingCost:"50,00",total:"1.550,00",items:"2× Cerveja lata 350ml (cx) — R$ 139,80\n1× Refrigerante 2L (cx) — R$ 89,90", delivery:"Rua Exemplo, 230 — Centro\nCidade/UF · CEP 00000-000", receiver:"o próprio titular", notes:"Ligar quando estiver próximo"},
     payment:{email,name,orderNumber:"PED-TESTE",totalAmount:"1.550,00",dueDate:fmtDT(new Date(now.getTime()+DEADLINE_MIN*60000)),paymentMethod:"PIX"},
     processing:{email,name,orderNumber:"PED-TESTE",paidAmount:"1.550,00",paymentMethod:"PIX",paymentDate:fmtDT(now),emissionTime:"17:00",estimatedTime:"2-3 horas"},
     invoice:{email,name,orderNumber:"PED-TESTE",paidAmount:"1.550,00",estimatedTime:"Até 30 minutos"} }[mType];
