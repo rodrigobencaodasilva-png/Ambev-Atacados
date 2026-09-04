@@ -24,8 +24,15 @@ npm start              # http://localhost:3000
 2. Em **Environment Variables** adicione:
    - `RESEND_API_KEY` — sua chave do Resend (obrigatória)
    - `SENDER_EMAIL` — opcional. Padrão `onboarding@resend.dev` (modo teste: só entrega para o email da conta Resend). Com domínio verificado no Resend use ex.: `noreply@seudominio.com.br`
+   - `REPLY_TO` — opcional, caixa real para respostas dos clientes (ex.: seu Gmail)
+   - `COMPANY_NAME` / `CONTACT_EMAIL` — opcionais, exibidos no rodapé dos emails
    - `PAYMENT_DEADLINE_MINUTES` — opcional, padrão `20`
 3. Deploy. O painel abre na raiz do site.
+
+### Entregabilidade (sair do spam)
+- Envie sempre de um domínio verificado no Resend (SPF + DKIM) e mantenha um registro DMARC no domínio.
+- Os assuntos são sóbrios (sem "URGENTE"/emojis) e todo email vai com versão em texto puro e `reply-to` real.
+- Domínio novo: comece com poucos envios por dia e marque "não é spam" nos primeiros que chegarem.
 
 ## Estrutura
 
