@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gestor Ambev Brasil</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍺</text></svg>">
+<style>
+  :root{
+    --bg:#f3f5f7; --card:#ffffff; --ink:#1a1d21; --muted:#6b7280; --line:#e5e7eb;
+    --brand:#0E6B5E; --brand-2:#0a5247; --gold:#f5b700;
+    --orange:#d97706; --green:#0E6B5E; --yellow:#ca8a04; --blue:#0366d6; --lime:#16a34a; --red:#dc2626;
+    --radius:14px; --shadow:0 1px 2px rgba(16,24,40,.06),0 8px 24px -12px rgba(16,24,40,.18);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;background:var(--bg);color:var(--ink);line-height:1.45}
+  button{font:inherit;cursor:pointer}
+  input,select{font:inherit}
+
+  /* Top bar */
+  .topbar{background:linear-gradient(100deg,#0a5247 0%,#0E6B5E 60%,#118a78 100%);color:#fff;padding:0 24px}
+  .topbar-in{max-width:1180px;margin:0 auto;height:66px;display:flex;align-items:center;justify-content:space-between;gap:16px}
+  .logo{display:flex;align-items:center;gap:12px}
+  .logo .mark{width:42px;height:42px;border-radius:12px;background:rgba(255,255,255,.14);display:grid;place-items:center;font-size:22px}
+  .logo .name{font-weight:800;font-size:20px;letter-spacing:-.3px;line-height:1}
+  .logo .sub{font-size:11px;letter-spacing:2px;opacity:.8;text-transform:uppercase}
+  .cfg{display:flex;align-items:center;gap:8px;font-size:13px;background:rgba(255,255,255,.12);padding:7px 12px;border-radius:999px;white-space:nowrap}
+  .dot{width:9px;height:9px;border-radius:50%;background:#94a3b8}
+  .dot.ok{background:#4ade80;box-shadow:0 0 0 3px rgba(74,222,128,.25)}
+  .dot.bad{background:#f87171;box-shadow:0 0 0 3px rgba(248,113,113,.25)}
+
+  .wrap{max-width:1180px;margin:0 auto;padding:22px 24px 60px}
+
+  /* Banner */
+  .banner{display:none;border-radius:var(--radius);padding:12px 16px;margin-bottom:18px;font-size:14px;border:1px solid}
+  .banner.warn{display:block;background:#fffbeb;border-color:#fde68a;color:#78350f}
+  .banner.err{display:block;background:#fef2f2;border-color:#fecaca;color:#7f1d1d}
+  .banner b{font-weight:700}
+
+  /* Stats */
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:22px}
+  .stat{background:var(--card);border-radius:var(--radius);padding:16px 18px;box-shadow:var(--shadow);display:flex;align-items:center;gap:14px}
+  .stat .ic{width:44px;height:44px;border-radius:12px;display:grid;place-items:center;font-size:20px}
+  .stat .n{font-size:26px;font-weight:800;letter-spacing:-.5px;line-height:1}
+  .stat .l{font-size:12px;color:var(--muted);margin-top:4px}
+
+  /* Layout */
+  .grid{display:grid;grid-template-columns:380px 1fr;gap:18px;align-items:start}
+  .card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:20px;margin-bottom:18px}
+  .card h2{font-size:15px;font-weight:700;display:flex;align-items:center;gap:8px;margin-bottom:14px}
+  .card h2 .tag{margin-left:auto;font-size:11px;font-weight:600;color:var(--muted);background:#f1f5f9;padding:3px 8px;border-radius:999px}
+
+  label{display:block;font-size:12px;font-weight:600;color:#374151;margin:10px 0 5px}
+  input,select{width:100%;border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:#fff;transition:.15s}
+  input:focus,select:focus{outline:none;border-color:var(--brand);box-shadow:0 0 0 3px rgba(14,107,94,.15)}
+  .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:none;border-radius:10px;padding:11px 16px;font-weight:700;font-size:14px;transition:.15s;white-space:nowrap}
+  .btn.primary{background:var(--brand);color:#fff;width:100%;margin-top:14px}
+  .btn.primary:hover{background:var(--brand-2)}
+  .btn.ghost{background:#f1f5f9;color:#334155;padding:8px 12px;font-size:13px}
+  .btn.ghost:hover{background:#e2e8f0}
+  .btn.sm{padding:7px 11px;font-size:12px;border-radius:8px}
+  .btn.blue{background:#eaf2ff;color:#1d4ed8}.btn.blue:hover{background:#dbe7ff}
+  .btn.green{background:#ecfdf5;color:#047857}.btn.green:hover{background:#d1fae5}
+  .btn.warn{background:#fffbeb;color:#b45309}.btn.warn:hover{background:#fef3c7}
+  .btn.danger{background:#fef2f2;color:#b91c1c}.btn.danger:hover{background:#fee2e2}
+  .btn:disabled{opacity:.55;cursor:not-allowed}
+  .hint{font-size:12px;color:var(--muted);margin-top:8px}
+
+  /* Orders */
+  .order{border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-bottom:12px;transition:.15s}
+  .order:hover{border-color:#cbd5e1}
+  .order-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap}
+  .order-id{font-weight:800;font-size:15px}
+  .order-meta{font-size:13px;color:var(--muted);margin-top:2px}
+  .order-total{font-weight:800;font-size:18px;color:var(--brand);text-align:right}
+  .status{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;padding:4px 10px;border-radius:999px}
+  .s-pend{background:#fef9c3;color:#854d0e}.s-exp{background:#fee2e2;color:#991b1b}.s-proc{background:#dbeafe;color:#1e40af}.s-done{background:#dcfce7;color:#166534}
+  .countdown{font-variant-numeric:tabular-nums;font-weight:800}
+  .steps{display:flex;gap:6px;margin:12px 0 10px}
+  .step{flex:1;text-align:center;font-size:11px;color:var(--muted);position:relative}
+  .step .bar{height:6px;border-radius:99px;background:#e5e7eb;margin-bottom:5px}
+  .step.done .bar{background:var(--lime)} .step.now .bar{background:var(--gold)}
+  .step.done{color:#166534;font-weight:600} .step.now{color:#92400e;font-weight:700}
+  .actions{display:flex;gap:8px;flex-wrap:wrap}
+  .empty{text-align:center;color:var(--muted);padding:34px 10px;font-size:14px}
+  .empty .big{font-size:36px;margin-bottom:6px}
+
+  /* Clients list */
+  .client{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 0;border-bottom:1px solid var(--line);font-size:13px}
+  .client:last-child{border-bottom:none}
+  .client .nm{font-weight:700}.client .em{color:var(--muted);font-size:12px}
+  .avatar{width:34px;height:34px;border-radius:50%;background:#e0f2ef;color:var(--brand);font-weight:800;display:grid;place-items:center;font-size:13px;flex-shrink:0}
+
+  /* Templates */
+  .tpl{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}
+  .tpl button{border:1px solid var(--line);background:#fff;border-radius:12px;padding:12px 8px;text-align:center;transition:.15s}
+  .tpl button:hover{transform:translateY(-2px);box-shadow:var(--shadow)}
+  .tpl .e{font-size:22px}.tpl .t{font-size:12px;font-weight:700;margin-top:6px}.tpl .c{height:4px;border-radius:99px;margin:8px auto 0;width:60%}
+
+  /* Log */
+  .log{font-size:13px}
+  .log-item{display:grid;grid-template-columns:24px 1fr auto;gap:10px;align-items:center;padding:9px 0;border-bottom:1px solid var(--line)}
+  .log-item:last-child{border-bottom:none}
+  .log-item .sub{color:var(--muted);font-size:12px}
+  .log-item .err{color:var(--red);font-size:12px}
+  .log-item time{font-size:12px;color:var(--muted);white-space:nowrap}
+
+  /* Modal */
+  .modal{position:fixed;inset:0;background:rgba(15,23,42,.55);display:none;align-items:center;justify-content:center;padding:20px;z-index:50}
+  .modal.open{display:flex}
+  .modal-box{background:#fff;border-radius:16px;width:min(720px,100%);max-height:92vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 30px 60px -20px rgba(0,0,0,.5)}
+  .modal-h{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--line);font-weight:700}
+  .modal-h .x{background:none;border:none;font-size:22px;color:var(--muted)}
+  .modal-b{padding:18px;overflow:auto}
+  .modal-b iframe{width:100%;height:70vh;border:1px solid var(--line);border-radius:10px;background:#fff}
+  .modal-f{padding:12px 18px;border-top:1px solid var(--line);display:flex;gap:10px;justify-content:flex-end}
+
+  /* Toast */
+  #toasts{position:fixed;right:18px;bottom:18px;display:flex;flex-direction:column;gap:10px;z-index:60}
+  .toast{background:#111827;color:#fff;padding:12px 16px;border-radius:12px;font-size:14px;box-shadow:0 10px 30px -10px rgba(0,0,0,.5);max-width:380px;animation:in .2s ease}
+  .toast.ok{background:#065f46}.toast.err{background:#991b1b}
+  @keyframes in{from{transform:translateY(8px);opacity:0}to{transform:none;opacity:1}}
+  .spin{display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:sp .7s linear infinite}
+  @keyframes sp{to{transform:rotate(360deg)}}
+
+  @media(max-width:900px){.grid{grid-template-columns:1fr}.stats{grid-template-columns:repeat(2,1fr)}.tpl{grid-template-columns:repeat(2,1fr)}.topbar-in{height:auto;padding:12px 0;flex-wrap:wrap}}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-in">
+    <div class="logo">
+      <div class="mark">🍺</div>
+      <div>
+        <div class="name">ambev</div>
+        <div class="sub">Gestor de Clientes</div>
+      </div>
+    </div>
+    <div class="cfg" id="cfg"><span class="dot"></span> Verificando configuração…</div>
+  </div>
+</div>
+
+<div class="wrap">
+  <div class="banner" id="banner"></div>
+
+  <div class="stats">
+    <div class="stat"><div class="ic" style="background:#e0f2ef">👥</div><div><div class="n" id="stClients">0</div><div class="l">Clientes</div></div></div>
+    <div class="stat"><div class="ic" style="background:#fef9c3">📦</div><div><div class="n" id="stOrders">0</div><div class="l">Pedidos</div></div></div>
+    <div class="stat"><div class="ic" style="background:#fee2e2">⏳</div><div><div class="n" id="stPending">0</div><div class="l">Aguardando pagamento</div></div></div>
+    <div class="stat"><div class="ic" style="background:#dcfce7">📧</div><div><div class="n" id="stEmails">0</div><div class="l">Emails enviados</div></div></div>
+  </div>
+
+  <div class="grid">
+    <!-- Coluna esquerda -->
+    <div>
+      <div class="card">
+        <h2>👤 Novo cliente <span class="tag">envia email 1</span></h2>
+        <form id="fClient">
+          <label>Nome completo *</label><input name="name" required placeholder="Ex.: João da Silva">
+          <label>Email *</label><input name="email" type="email" required placeholder="cliente@email.com">
+          <div class="row">
+            <div><label>Telefone</label><input name="phone" placeholder="(11) 99999-9999"></div>
+            <div><label>Empresa</label><input name="company" placeholder="Bar do João"></div>
+          </div>
+          <button class="btn primary" type="submit">Cadastrar e enviar confirmação</button>
+          <div class="hint">Dispara o email <b>📋 Aguardando Cadastro</b> automaticamente.</div>
+        </form>
+      </div>
+
+      <div class="card">
+        <h2>🛒 Novo pedido <span class="tag">envia emails 2 e 3</span></h2>
+        <form id="fOrder">
+          <label>Cliente *</label>
+          <select name="clientId" id="selClient" required><option value="">Cadastre um cliente primeiro</option></select>
+          <div class="row">
+            <div><label>Subtotal (R$) *</label><input name="subtotal" type="number" step="0.01" min="0" required placeholder="1500,00"></div>
+            <div><label>Frete (R$)</label><input name="shipping" type="number" step="0.01" min="0" value="0" placeholder="0,00"></div>
+          </div>
+          <label>Forma de pagamento</label>
+          <select name="paymentMethod">
+            <option>PIX</option><option>Boleto Bancário</option><option>Transferência</option><option>Cartão de Crédito</option>
+          </select>
+          <button class="btn primary" type="submit">Criar pedido e cobrar</button>
+          <div class="hint">Dispara <b>✅ Pedido Recebido</b> e <b>⚠️ Aguardando Pagamento</b> (prazo de <span id="deadlineTxt">20</span> minutos).</div>
+        </form>
+      </div>
+
+      <div class="card">
+        <h2>👥 Clientes <span class="tag" id="clientCount">0</span></h2>
+        <div id="clients"></div>
+      </div>
+    </div>
+
+    <!-- Coluna direita -->
+    <div>
+      <div class="card">
+        <h2>📦 Pedidos
+          <span style="margin-left:auto;display:flex;gap:6px">
+            <button class="btn ghost sm" data-filter="all">Todos</button>
+            <button class="btn ghost sm" data-filter="pend">Aguardando</button>
+            <button class="btn ghost sm" data-filter="proc">Processando</button>
+            <button class="btn ghost sm" data-filter="done">Concluídos</button>
+          </span>
+        </h2>
+        <div id="orders"></div>
+      </div>
+
+      <div class="card">
+        <h2>🎨 Modelos de email <span class="tag">clique para ver / enviar teste</span></h2>
+        <div class="tpl">
+          <button data-tpl="registration"><div class="e">📋</div><div class="t">Cadastro</div><div class="c" style="background:#d97706"></div></button>
+          <button data-tpl="order"><div class="e">✅</div><div class="t">Pedido</div><div class="c" style="background:#0E6B5E"></div></button>
+          <button data-tpl="payment"><div class="e">⚠️</div><div class="t">Pagamento 20min</div><div class="c" style="background:#ca8a04"></div></button>
+          <button data-tpl="processing"><div class="e">⚙️</div><div class="t">Baixa</div><div class="c" style="background:#0366d6"></div></button>
+          <button data-tpl="invoice"><div class="e">📄</div><div class="t">Nota Fiscal</div><div class="c" style="background:#16a34a"></div></button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>📨 Histórico de envios <button class="btn ghost sm" style="margin-left:auto" id="clearLog">Limpar</button></h2>
+        <div class="log" id="log"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal preview -->
+<div class="modal" id="modal">
+  <div class="modal-box">
+    <div class="modal-h"><span id="mTitle">Pré-visualização</span><button class="x" id="mClose">×</button></div>
+    <div class="modal-b">
+      <div class="row" style="margin-bottom:10px">
+        <div><label style="margin-top:0">Enviar teste para</label><input id="mEmail" type="email" placeholder="seu@email.com"></div>
+        <div><label style="margin-top:0">Nome no email</label><input id="mName" value="Cliente Teste"></div>
+      </div>
+      <iframe id="mFrame" title="Pré-visualização do email"></iframe>
+    </div>
+    <div class="modal-f">
+      <button class="btn ghost" id="mCancel">Fechar</button>
+      <button class="btn primary" style="width:auto;margin:0" id="mSend">Enviar email de teste</button>
+    </div>
+  </div>
+</div>
+
+<div id="toasts"></div>
+
+<script>
+// ===================== Estado (salvo no navegador) =====================
+const KEY = "ambev_gestor_v3";
+let state = load();
+let filter = "all";
+let DEADLINE_MIN = 20;
+let health = null;
+
+function load(){ try{ return JSON.parse(localStorage.getItem(KEY)) || {clients:[],orders:[],emails:[]}; }catch{ return {clients:[],orders:[],emails:[]}; } }
+function save(){ localStorage.setItem(KEY, JSON.stringify(state)); render(); }
+
+const $ = (s)=>document.querySelector(s);
+const money = (n)=> Number(n||0).toLocaleString("pt-BR",{minimumFractionDigits:2,maximumFractionDigits:2});
+const fmtDT = (iso)=> new Date(iso).toLocaleString("pt-BR");
+const fmtD  = (iso)=> new Date(iso).toLocaleDateString("pt-BR");
+const esc = (s)=> String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const initials = (n)=> n.split(" ").filter(Boolean).slice(0,2).map(p=>p[0].toUpperCase()).join("");
+function nextId(prefix, list){ return prefix + String(list.length+1).padStart(6,"0"); }
+
+// ===================== API =====================
+async function api(path, body){
+  const r = await fetch(path, { method: body?"POST":"GET", headers:{"Content-Type":"application/json"}, body: body?JSON.stringify(body):undefined });
+  let data; try{ data = await r.json(); }catch{ data = {success:false,error:"Resposta inválida do servidor ("+r.status+")"}; }
+  if(!r.ok || data.success===false) throw new Error(data.error || ("Erro "+r.status));
+  return data;
+}
+
+const TYPES = {
+  registration:{label:"📋 Aguardando Cadastro", path:"/api/emails/registration"},
+  order:{label:"✅ Pedido Recebido", path:"/api/emails/order-received"},
+  payment:{label:"⚠️ Aguardando Pagamento (20 min)", path:"/api/emails/awaiting-payment"},
+  processing:{label:"⚙️ Baixa em Sistema", path:"/api/emails/payment-processing"},
+  invoice:{label:"📄 Emitindo NF", path:"/api/emails/emitting-invoice"},
+};
+
+async function sendEmail(type, payload, ctx){
+  const t = TYPES[type];
+  const entry = { type, label:t.label, to:payload.email, ok:false, at:new Date().toISOString(), ref: ctx||"" };
+  try{
+    const res = await api(t.path, payload);
+    entry.ok = true; entry.id = res.email && res.email.id;
+    state.emails.unshift(entry); save();
+    toast("✅ "+t.label+" enviado para "+payload.email, "ok");
+    return res;
+  }catch(e){
+    entry.error = e.message; state.emails.unshift(entry); save();
+    toast("❌ "+t.label+": "+e.message, "err", 9000);
+    throw e;
+  }
+}
+
+// ===================== Health / configuração =====================
+async function checkHealth(){
+  const cfg = $("#cfg"), banner = $("#banner");
+  try{
+    health = await api("/api/health");
+    DEADLINE_MIN = health.deadlineMinutes || 20; $("#deadlineTxt").textContent = DEADLINE_MIN;
+    if(!health.apiKeyConfigured){
+      cfg.innerHTML = '<span class="dot bad"></span> RESEND_API_KEY não configurada';
+      banner.className="banner err";
+      banner.innerHTML = "<b>Emails desativados:</b> configure a variável <code>RESEND_API_KEY</code> no projeto (Vercel → Settings → Environment Variables) e faça um novo deploy.";
+    } else if(health.usingTestSender){
+      cfg.innerHTML = '<span class="dot ok"></span> Resend ativo · remetente de teste';
+      banner.className="banner warn";
+      banner.innerHTML = "<b>Modo teste do Resend:</b> o remetente é <code>"+esc(health.senderEmail)+"</code>, então o Resend só entrega para o email da <b>sua própria conta Resend</b>. Para enviar a qualquer cliente, verifique um domínio em resend.com/domains e configure <code>SENDER_EMAIL</code>.";
+    } else {
+      cfg.innerHTML = '<span class="dot ok"></span> Resend ativo · '+esc(health.senderEmail);
+      banner.className="banner";
+    }
+  }catch(e){
+    cfg.innerHTML = '<span class="dot bad"></span> API indisponível';
+    banner.className="banner err"; banner.innerHTML="<b>Não foi possível falar com a API</b> ("+esc(e.message)+").";
+  }
+}
+
+// ===================== Ações =====================
+$("#fClient").addEventListener("submit", async (ev)=>{
+  ev.preventDefault();
+  const f = ev.target, btn = f.querySelector("button");
+  const client = { id: nextId("CLI-", state.clients), name:f.name.value.trim(), email:f.email.value.trim().toLowerCase(), phone:f.phone.value.trim(), company:f.company.value.trim(), createdAt:new Date().toISOString() };
+  if(state.clients.some(c=>c.email===client.email)){ toast("Já existe um cliente com esse email.","err"); return; }
+  busy(btn,true);
+  state.clients.push(client); save();
+  try{ await sendEmail("registration", {email:client.email, name:client.name, referenceCode:client.id}, client.id); }catch{}
+  busy(btn,false); f.reset();
+});
+
+$("#fOrder").addEventListener("submit", async (ev)=>{
+  ev.preventDefault();
+  const f = ev.target, btn = f.querySelector("button");
+  const client = state.clients.find(c=>c.id===f.clientId.value);
+  if(!client){ toast("Selecione um cliente.","err"); return; }
+  const subtotal = Number(f.subtotal.value||0), shipping = Number(f.shipping.value||0), total = subtotal+shipping;
+  const now = new Date();
+  const order = { id: nextId("PED-", state.orders), clientId:client.id, subtotal, shipping, total, paymentMethod:f.paymentMethod.value,
+    status:"pend", createdAt:now.toISOString(), deadline:new Date(now.getTime()+DEADLINE_MIN*60000).toISOString(), sent:{} };
+  busy(btn,true);
+  state.orders.unshift(order); save();
+  try{
+    await sendEmail("order", {email:client.email, name:client.name, orderNumber:order.id, orderDate:fmtD(order.createdAt), subtotal:money(subtotal), shippingCost:money(shipping), total:money(total)}, order.id);
+    order.sent.order = true; save();
+  }catch{}
+  try{
+    await sendEmail("payment", {email:client.email, name:client.name, orderNumber:order.id, totalAmount:money(total), dueDate:fmtDT(order.deadline), paymentMethod:order.paymentMethod}, order.id);
+    order.sent.payment = true; save();
+  }catch{}
+  busy(btn,false); f.reset(); f.shipping.value=0;
+});
+
+async function confirmPayment(id, btn){
+  const o = state.orders.find(x=>x.id===id), c = state.clients.find(x=>x.id===o.clientId);
+  busy(btn,true);
+  o.status="proc"; o.paidAt=new Date().toISOString(); save();
+  try{
+    await sendEmail("processing", {email:c.email, name:c.name, orderNumber:o.id, paidAmount:money(o.total), paymentMethod:o.paymentMethod, paymentDate:fmtDT(o.paidAt),
+      emissionTime:new Date(Date.now()+30*60000).toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"}), estimatedTime:"2-3 horas"}, o.id);
+    o.sent.processing=true; save();
+  }catch{}
+  busy(btn,false);
+}
+async function emitInvoice(id, btn){
+  const o = state.orders.find(x=>x.id===id), c = state.clients.find(x=>x.id===o.clientId);
+  busy(btn,true);
+  try{
+    await sendEmail("invoice", {email:c.email, name:c.name, orderNumber:o.id, paidAmount:money(o.total), estimatedTime:"Até 30 minutos"}, o.id);
+    o.sent.invoice=true; o.status="done"; o.invoiceAt=new Date().toISOString(); save();
+  }catch{}
+  busy(btn,false);
+}
+async function resendCharge(id, btn){
+  const o = state.orders.find(x=>x.id===id), c = state.clients.find(x=>x.id===o.clientId);
+  busy(btn,true);
+  o.deadline = new Date(Date.now()+DEADLINE_MIN*60000).toISOString(); o.status="pend"; save();
+  try{ await sendEmail("payment", {email:c.email, name:c.name, orderNumber:o.id, totalAmount:money(o.total), dueDate:fmtDT(o.deadline), paymentMethod:o.paymentMethod}, o.id); o.sent.payment=true; save(); }catch{}
+  busy(btn,false);
+}
+async function resendOrder(id, btn){
+  const o = state.orders.find(x=>x.id===id), c = state.clients.find(x=>x.id===o.clientId);
+  busy(btn,true);
+  try{ await sendEmail("order", {email:c.email, name:c.name, orderNumber:o.id, orderDate:fmtD(o.createdAt), subtotal:money(o.subtotal), shippingCost:money(o.shipping), total:money(o.total)}, o.id); o.sent.order=true; save(); }catch{}
+  busy(btn,false);
+}
+async function resendRegistration(id, btn){
+  const c = state.clients.find(x=>x.id===id);
+  busy(btn,true);
+  try{ await sendEmail("registration", {email:c.email, name:c.name, referenceCode:c.id}, c.id); }catch{}
+  busy(btn,false);
+}
+function deleteOrder(id){ if(!confirm("Excluir o pedido "+id+" do painel?")) return; state.orders = state.orders.filter(o=>o.id!==id); save(); }
+function deleteClient(id){
+  if(state.orders.some(o=>o.clientId===id)){ toast("Esse cliente tem pedidos. Exclua os pedidos primeiro.","err"); return; }
+  if(!confirm("Excluir este cliente?")) return; state.clients = state.clients.filter(c=>c.id!==id); save();
+}
+
+// ===================== Render =====================
+function render(){
+  // stats
+  $("#stClients").textContent = state.clients.length;
+  $("#stOrders").textContent = state.orders.length;
+  $("#stPending").textContent = state.orders.filter(o=>o.status==="pend").length;
+  $("#stEmails").textContent = state.emails.filter(e=>e.ok).length;
+  $("#clientCount").textContent = state.clients.length;
+
+  // select
+  const sel = $("#selClient"), cur = sel.value;
+  sel.innerHTML = state.clients.length ? '<option value="">Selecione…</option>' + state.clients.map(c=>`<option value="${c.id}">${esc(c.name)} — ${esc(c.email)}</option>`).join("") : '<option value="">Cadastre um cliente primeiro</option>';
+  if(cur) sel.value = cur;
+
+  // clients
+  $("#clients").innerHTML = state.clients.length ? state.clients.slice().reverse().map(c=>`
+    <div class="client">
+      <div style="display:flex;gap:10px;align-items:center;min-width:0">
+        <div class="avatar">${esc(initials(c.name))}</div>
+        <div style="min-width:0"><div class="nm">${esc(c.name)}</div><div class="em">${esc(c.email)}${c.company?" · "+esc(c.company):""}</div></div>
+      </div>
+      <div style="display:flex;gap:6px;flex-shrink:0">
+        <button class="btn ghost sm" title="Reenviar email de cadastro" onclick="resendRegistration('${c.id}',this)">📋</button>
+        <button class="btn ghost sm" title="Excluir" onclick="deleteClient('${c.id}')">🗑</button>
+      </div>
+    </div>`).join("") : '<div class="empty"><div class="big">👤</div>Nenhum cliente ainda.</div>';
+
+  // orders
+  let list = state.orders;
+  if(filter!=="all") list = list.filter(o => filter==="pend" ? (o.status==="pend"||o.status==="exp") : o.status===filter);
+  document.querySelectorAll("[data-filter]").forEach(b=> b.style.background = b.dataset.filter===filter ? "#e0f2ef" : "");
+  $("#orders").innerHTML = list.length ? list.map(renderOrder).join("") : '<div class="empty"><div class="big">📦</div>Nenhum pedido '+(filter==="all"?"ainda":"nesse filtro")+'.</div>';
+
+  // log
+  $("#log").innerHTML = state.emails.length ? state.emails.slice(0,40).map(e=>`
+    <div class="log-item">
+      <div>${e.ok?"✅":"❌"}</div>
+      <div><div>${esc(e.label)} → <b>${esc(e.to)}</b> ${e.ref?'<span class="sub">('+esc(e.ref)+')</span>':""}</div>${e.ok?'':'<div class="err">'+esc(e.error)+'</div>'}</div>
+      <time>${fmtDT(e.at)}</time>
+    </div>`).join("") : '<div class="empty">Nenhum email enviado ainda.</div>';
+}
+
+function renderOrder(o){
+  const c = state.clients.find(x=>x.id===o.clientId) || {name:"?",email:"?"};
+  const st = {pend:["s-pend","⏳ Aguardando pagamento"],exp:["s-exp","⛔ Prazo expirado"],proc:["s-proc","⚙️ Processando / emitindo NF"],done:["s-done","✅ NF emitida"]}[o.status];
+  const stepIdx = {pend:1,exp:1,proc:2,done:3}[o.status];
+  const steps = ["Pedido","Pagamento","Baixa","Nota Fiscal"].map((s,i)=>`<div class="step ${i<stepIdx?"done":i===stepIdx?"now":""}"><div class="bar"></div>${s}</div>`).join("");
+  let actions = "";
+  if(o.status==="pend") actions = `<button class="btn green sm" onclick="confirmPayment('${o.id}',this)">💳 Confirmar pagamento</button><button class="btn warn sm" onclick="resendCharge('${o.id}',this)">⚠️ Reenviar cobrança</button>`;
+  if(o.status==="exp") actions = `<button class="btn warn sm" onclick="resendCharge('${o.id}',this)">🔁 Nova cobrança (+${DEADLINE_MIN} min)</button><button class="btn green sm" onclick="confirmPayment('${o.id}',this)">💳 Pagamento recebido</button>`;
+  if(o.status==="proc") actions = `<button class="btn blue sm" onclick="emitInvoice('${o.id}',this)">📄 Emitir NF e avisar cliente</button>`;
+  if(o.status==="done") actions = `<span class="hint" style="margin:0">Fluxo concluído em ${fmtDT(o.invoiceAt)}</span>`;
+  actions += `<button class="btn ghost sm" onclick="resendOrder('${o.id}',this)" title="Reenviar email do pedido">✅ Reenviar pedido</button><button class="btn ghost sm" onclick="deleteOrder('${o.id}')" title="Excluir do painel">🗑</button>`;
+  const timer = o.status==="pend" ? `<span class="status s-pend">⏳ <span class="countdown" data-deadline="${o.deadline}">--:--</span></span>` : `<span class="status ${st[0]}">${st[1]}</span>`;
+  return `<div class="order">
+    <div class="order-top">
+      <div>
+        <div class="order-id">${esc(o.id)} ${timer}</div>
+        <div class="order-meta">${esc(c.name)} · ${esc(c.email)} · ${esc(o.paymentMethod)} · ${fmtDT(o.createdAt)}</div>
+      </div>
+      <div class="order-total">R$ ${money(o.total)}<div class="hint" style="margin:0">sub ${money(o.subtotal)} + frete ${money(o.shipping)}</div></div>
+    </div>
+    <div class="steps">${steps}</div>
+    <div class="actions">${actions}</div>
+  </div>`;
+}
+
+// countdown 20 min
+setInterval(()=>{
+  let changed=false;
+  document.querySelectorAll(".countdown").forEach(el=>{
+    const ms = new Date(el.dataset.deadline) - Date.now();
+    if(ms<=0){ const o = state.orders.find(x=>x.deadline===el.dataset.deadline && x.status==="pend"); if(o){o.status="exp"; changed=true;} return; }
+    const m = Math.floor(ms/60000), s = Math.floor(ms%60000/1000);
+    el.textContent = String(m).padStart(2,"0")+":"+String(s).padStart(2,"0");
+  });
+  if(changed) save();
+},1000);
+
+// filtros
+document.querySelectorAll("[data-filter]").forEach(b=>b.addEventListener("click",()=>{filter=b.dataset.filter;render();}));
+$("#clearLog").addEventListener("click",()=>{ if(confirm("Limpar histórico de envios?")){state.emails=[];save();} });
+
+// ===================== Modal de templates =====================
+let mType = null;
+document.querySelectorAll("[data-tpl]").forEach(b=>b.addEventListener("click",()=>openPreview(b.dataset.tpl)));
+function openPreview(type){
+  mType=type; $("#mTitle").textContent = TYPES[type].label;
+  const name = $("#mName").value || "Cliente Teste";
+  $("#mFrame").src = "/api/emails/preview/"+type+"?customerName="+encodeURIComponent(name)+"&customerEmail="+encodeURIComponent($("#mEmail").value||"cliente@exemplo.com");
+  $("#modal").classList.add("open");
+}
+function closeModal(){ $("#modal").classList.remove("open"); $("#mFrame").src="about:blank"; }
+$("#mClose").onclick = $("#mCancel").onclick = closeModal;
+$("#modal").addEventListener("click",e=>{ if(e.target.id==="modal") closeModal(); });
+$("#mName").addEventListener("change",()=> mType && openPreview(mType));
+$("#mSend").addEventListener("click", async ()=>{
+  const email = $("#mEmail").value.trim(), name = $("#mName").value.trim()||"Cliente Teste";
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){ toast("Informe um email válido para o teste.","err"); return; }
+  localStorage.setItem("ambev_test_email", email);
+  const btn = $("#mSend"); busy(btn,true);
+  const now = new Date();
+  const payload = { registration:{email,name,referenceCode:"CLI-TESTE"},
+    order:{email,name,orderNumber:"PED-TESTE",orderDate:fmtD(now),subtotal:"1.500,00",shippingCost:"50,00",total:"1.550,00"},
+    payment:{email,name,orderNumber:"PED-TESTE",totalAmount:"1.550,00",dueDate:fmtDT(new Date(now.getTime()+DEADLINE_MIN*60000)),paymentMethod:"PIX"},
+    processing:{email,name,orderNumber:"PED-TESTE",paidAmount:"1.550,00",paymentMethod:"PIX",paymentDate:fmtDT(now),emissionTime:"17:00",estimatedTime:"2-3 horas"},
+    invoice:{email,name,orderNumber:"PED-TESTE",paidAmount:"1.550,00",estimatedTime:"Até 30 minutos"} }[mType];
+  try{ await sendEmail(mType, payload, "teste"); }catch{}
+  busy(btn,false);
+});
+
+// ===================== Utilidades =====================
+function toast(msg, kind, ms){
+  const t=document.createElement("div"); t.className="toast "+(kind||""); t.textContent=msg; $("#toasts").appendChild(t);
+  setTimeout(()=>t.remove(), ms||4000);
+}
+function busy(btn,on){ if(!btn) return; if(on){ btn.dataset.txt=btn.innerHTML; btn.innerHTML='<span class="spin"></span> Enviando…'; btn.disabled=true; } else { btn.innerHTML=btn.dataset.txt||btn.innerHTML; btn.disabled=false; } }
+
+// init
+$("#mEmail").value = localStorage.getItem("ambev_test_email") || "";
+render(); checkHealth();
+</script>
+</body>
+</html>
