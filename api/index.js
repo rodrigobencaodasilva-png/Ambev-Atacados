@@ -11,7 +11,7 @@ const app = express();
 app.use(cors());
 app.use(express.json({ limit: "1mb" }));
 
-const DEADLINE_MINUTES = Number(process.env.PAYMENT_DEADLINE_MINUTES || 20);
+const DEADLINE_MINUTES = mail.DEADLINE_MINUTES;
 
 function fmtDate(d = new Date()) {
   return d.toLocaleDateString("pt-BR", { timeZone: "America/Sao_Paulo" });
@@ -53,6 +53,9 @@ app.get("/api/health", (req, res) => {
     usingTestSender: mail.SENDER_EMAIL.endsWith("@resend.dev"),
     replyTo: mail.REPLY_TO || null,
     companyName: mail.COMPANY_NAME,
+    whatsappConfigured: Boolean(mail.WHATSAPP_NUMBER),
+    whatsappDisplay: mail.whatsappDisplay() || null,
+    logoUrl: mail.LOGO_URL,
     deadlineMinutes: DEADLINE_MINUTES,
     time: new Date().toISOString(),
   });
@@ -88,6 +91,8 @@ app.get("/api/emails/preview/:type", (req, res) => {
     paymentDate: q.paymentDate || fmtDateTime(),
     emissionTime: q.emissionTime || fmtTime(new Date(Date.now() + 30 * 60000)),
     estimatedTime: q.estimatedTime || "2-3 horas",
+    itemsBlock: T.itemsBlock(q.items || (req.params.type === "order" ? "2× Cerveja lata 350ml (cx) — R$ 139,80\n1× Refrigerante 2L (cx) — R$ 89,90" : "")),
+    deliveryBlock: req.params.type === "order" ? T.deliveryBlock({ delivery: q.delivery || "Rua Exemplo, 230 — Centro\nCidade/UF · CEP 00000-000", receiver: q.receiver || "o próprio titular", notes: q.notes || "Ligar quando estiver próximo" }) : "",
   };
   res.type("html").send(mail.fill(get(), vars));
 });
@@ -106,9 +111,10 @@ app.post("/api/emails/registration", async (req, res) => {
 app.post("/api/emails/order-received", async (req, res) => {
   try {
     requireFields(req.body, ["email", "name", "orderNumber", "total"]);
-    const { email, name, orderNumber, orderDate, subtotal, shippingCost, total } = req.body;
+    const { email, name, orderNumber, orderDate, subtotal, shippingCost, total, items, delivery, receiver, notes } = req.body;
     const sent = await mail.sendOrderReceivedEmail(
-      email, name, orderNumber, orderDate || fmtDate(), subtotal || total, shippingCost || "0,00", total
+      email, name, orderNumber, orderDate || fmtDate(), subtotal || total, shippingCost || "0,00", total, items || "",
+      { delivery, receiver, notes }
     );
     res.json({ success: true, email: sent });
   } catch (e) { fail(res, e); }
