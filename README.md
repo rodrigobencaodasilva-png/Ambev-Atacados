@@ -1,4 +1,4 @@
-# 🍺 Gestor de Clientes Ambev Brasil
+# 🍺 Ambev Atacados — Gestor de Pedidos
 
 Painel de clientes e pedidos com fluxo automático de **5 emails** (via [Resend](https://resend.com)):
 
@@ -26,6 +26,8 @@ npm start              # http://localhost:3000
    - `SENDER_EMAIL` — opcional. Padrão `onboarding@resend.dev` (modo teste: só entrega para o email da conta Resend). Com domínio verificado no Resend use ex.: `noreply@seudominio.com.br`
    - `REPLY_TO` — opcional, caixa real para respostas dos clientes (ex.: seu Gmail)
    - `COMPANY_NAME` / `CONTACT_EMAIL` — opcionais, exibidos no rodapé dos emails
+   - `WHATSAPP_NUMBER` — número (com DDI, só dígitos) para onde os botões "Confirmar pagamento" / "Já pagou?" levam, com mensagem pronta
+   - `BASE_URL` — URL pública do site; o logotipo dos emails é carregado de `BASE_URL/brand/logo-light.png`
    - `PAYMENT_DEADLINE_MINUTES` — opcional, padrão `20`
 3. Deploy. O painel abre na raiz do site.
 
@@ -39,7 +41,8 @@ npm start              # http://localhost:3000
 ```
 api/index.js        → API Express (Serverless Function na Vercel)
 lib/email.js        → envio dos 5 emails via Resend
-lib/templates.js    → templates HTML com logo Ambev
+lib/templates.js    → templates HTML (tabelas, compatíveis com Gmail/Outlook)
+public/brand/       → logotipo Ambev Atacados (PNG) usado nos emails e no painel
 public/index.html   → painel (dados salvos no navegador — localStorage)
 server.js           → servidor local
 ```
@@ -51,7 +54,7 @@ server.js           → servidor local
 | GET | `/api/health` | status da configuração |
 | GET | `/api/emails/preview/:type` | pré-visualização (`registration`, `order`, `payment`, `processing`, `invoice`) |
 | POST | `/api/emails/registration` | `{ email, name, referenceCode }` |
-| POST | `/api/emails/order-received` | `{ email, name, orderNumber, orderDate, subtotal, shippingCost, total }` |
+| POST | `/api/emails/order-received` | `{ email, name, orderNumber, orderDate, subtotal, shippingCost, total, items }` (`items`: um por linha) |
 | POST | `/api/emails/awaiting-payment` | `{ email, name, orderNumber, totalAmount, dueDate, paymentMethod }` |
 | POST | `/api/emails/payment-processing` | `{ email, name, orderNumber, paidAmount, paymentMethod, paymentDate, emissionTime, estimatedTime }` |
 | POST | `/api/emails/emitting-invoice` | `{ email, name, orderNumber, paidAmount, estimatedTime }` |
