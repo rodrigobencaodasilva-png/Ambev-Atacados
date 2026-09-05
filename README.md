@@ -1,4 +1,4 @@
-# 🍺 Ambev Atacados — Gestor de Pedidos
+# 🍺 Ambev S.A — Gestor de Pedidos
 
 Painel de clientes e pedidos com fluxo automático de **5 emails** (via [Resend](https://resend.com)):
 
@@ -42,7 +42,7 @@ npm start              # http://localhost:3000
 api/index.js        → API Express (Serverless Function na Vercel)
 lib/email.js        → envio dos 5 emails via Resend
 lib/templates.js    → templates HTML (tabelas, compatíveis com Gmail/Outlook)
-public/brand/       → logotipo Ambev Atacados (PNG) usado nos emails e no painel
+public/brand/       → logotipo Ambev S.A (PNG) usado nos emails e no painel
 public/index.html   → painel (dados salvos no navegador — localStorage)
 server.js           → servidor local
 ```
