@@ -3,13 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Ambev Atacados · Gestor</title>
+<title>Ambev S.A · Gestor</title>
 <link rel="icon" href="/brand/logo-icon.png">
 <style>
   :root{
     --bg:#f3f5f7; --card:#ffffff; --ink:#1a1d21; --muted:#6b7280; --line:#e5e7eb;
-    --brand:#0E6B5E; --brand-2:#0a5247; --gold:#f5b700;
-    --orange:#d97706; --green:#0E6B5E; --yellow:#ca8a04; --blue:#0366d6; --lime:#16a34a; --red:#dc2626;
+    --brand:#0052CC; --brand-2:#003D99; --gold:#f5b700;
+    --orange:#d97706; --green:#0052CC; --yellow:#ca8a04; --blue:#0366d6; --lime:#16a34a; --red:#dc2626;
     --radius:14px; --shadow:0 1px 2px rgba(16,24,40,.06),0 8px 24px -12px rgba(16,24,40,.18);
   }
   *{box-sizing:border-box;margin:0;padding:0}
@@ -18,7 +18,7 @@
   input,select{font:inherit}
 
   /* Top bar */
-  .topbar{background:linear-gradient(100deg,#0a5247 0%,#0E6B5E 60%,#118a78 100%);color:#fff;padding:0 24px}
+  .topbar{background:linear-gradient(100deg,#003D99 0%,#0052CC 60%,#1a66e0 100%);color:#fff;padding:0 24px}
   .topbar-in{max-width:1180px;margin:0 auto;height:66px;display:flex;align-items:center;justify-content:space-between;gap:16px}
   .logo{display:flex;align-items:center;gap:12px}
   .logo .mark{width:42px;height:42px;border-radius:12px;background:rgba(255,255,255,.14);display:grid;place-items:center;font-size:22px}
@@ -90,7 +90,7 @@
   .client{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 0;border-bottom:1px solid var(--line);font-size:13px}
   .client:last-child{border-bottom:none}
   .client .nm{font-weight:700}.client .em{color:var(--muted);font-size:12px}
-  .avatar{width:34px;height:34px;border-radius:50%;background:#e0f2ef;color:var(--brand);font-weight:800;display:grid;place-items:center;font-size:13px;flex-shrink:0}
+  .avatar{width:34px;height:34px;border-radius:50%;background:#e6efff;color:var(--brand);font-weight:800;display:grid;place-items:center;font-size:13px;flex-shrink:0}
 
   /* Templates */
   .tpl{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}
@@ -132,9 +132,8 @@
 <div class="topbar">
   <div class="topbar-in">
     <div class="logo">
-      <img src="/brand/logo-icon.png" alt="" style="width:42px;height:42px;border-radius:12px">
+      <img src="/brand/logo-light.png" alt="Ambev S.A" style="height:56px;width:auto;border-radius:10px">
       <div>
-        <div class="name">AMBEV <span style="color:#F5B700">ATACADOS</span></div>
         <div class="sub">Gestor de Pedidos</div>
       </div>
     </div>
@@ -171,7 +170,7 @@
 
       <div class="card" style="border:2px dashed #cbd5e1">
         <h2>📋 Colar pedido do catálogo <span class="tag">preenche tudo sozinho</span></h2>
-        <textarea id="pasteBox" rows="5" placeholder="Cole aqui a mensagem do pedido (🧾 PEDIDO #... — AMBEV ATACADOS ...)" style="width:100%;border:1px solid var(--line);border-radius:10px;padding:10px 12px;font:inherit;font-size:12px;resize:vertical"></textarea>
+        <textarea id="pasteBox" rows="5" placeholder="Cole aqui a mensagem do pedido (🧾 PEDIDO #... — AMBEV S.A ...)" style="width:100%;border:1px solid var(--line);border-radius:10px;padding:10px 12px;font:inherit;font-size:12px;resize:vertical"></textarea>
         <button class="btn primary" type="button" id="btnParse" style="margin-top:10px">Ler pedido e preencher</button>
         <div class="hint" id="parseHint">Reconhece número, data, titular, entrega, itens com preço, subtotal, frete, total, pagamento e observação.</div>
       </div>
@@ -235,7 +234,7 @@
         <h2>🎨 Modelos de email <span class="tag">clique para ver / enviar teste</span></h2>
         <div class="tpl">
           <button data-tpl="registration"><div class="e">📋</div><div class="t">Cadastro</div><div class="c" style="background:#d97706"></div></button>
-          <button data-tpl="order"><div class="e">✅</div><div class="t">Pedido</div><div class="c" style="background:#0E6B5E"></div></button>
+          <button data-tpl="order"><div class="e">✅</div><div class="t">Pedido</div><div class="c" style="background:#0052CC"></div></button>
           <button data-tpl="payment"><div class="e">⚠️</div><div class="t">Pagamento 20min</div><div class="c" style="background:#ca8a04"></div></button>
           <button data-tpl="processing"><div class="e">⚙️</div><div class="t">Baixa</div><div class="c" style="background:#0366d6"></div></button>
           <button data-tpl="invoice"><div class="e">📄</div><div class="t">Nota Fiscal</div><div class="c" style="background:#16a34a"></div></button>
